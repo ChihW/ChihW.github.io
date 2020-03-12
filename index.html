@@ -272,6 +272,198 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.chihw.cn/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ChihW">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ChihW's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/" itemprop="url">限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-11T09:14:15+08:00">
+                2020-03-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">限流那些事</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>​    上篇中给大家介绍了如何在Spring Boot项目中使用Google Guava提供的RateLimiter类（令牌桶算法实现），并使用自定义注解的方式进行限流操作， 基本上可以满足一些简单的限流需求，但是也有局限性（如不适用分布式环境， 通用性不佳），所以本篇将介绍阿里中间件团队开源的限流框架（<em>Sentinel</em>），并将结合Spring Boot的项目，来看一下他们两者结合会产生什么效果吧！</p>
+<hr>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+	
+	<div>
+	  
+	</div>
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.chihw.cn/2020/03/10/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%BA%8C%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8spring-boot%E9%A1%B9%E7%9B%AE%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%99%90%E6%B5%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -291,7 +483,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2020/03/10/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%BA%8C%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8spring-boot%E9%A1%B9%E7%9B%AE%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%99%90%E6%B5%81/" itemprop="url">限流那些事（二） -- 如何在spring boot项目中使用限流</a></h1>
+                <a class="post-title-link" href="/2020/03/10/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%BA%8C%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8spring-boot%E9%A1%B9%E7%9B%AE%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%99%90%E6%B5%81/" itemprop="url">限流那些事（二） -- 如何在Spring Boot项目中使用限流</a></h1>
         
 
         <div class="post-meta">
@@ -883,7 +1075,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -905,7 +1097,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

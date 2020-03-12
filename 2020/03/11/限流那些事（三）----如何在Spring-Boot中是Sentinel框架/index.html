@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+  <meta name="google-site-verification" content="BQigrq8-WZMioFAoo0eJlvJ6d9eoOGcSrIn0xnC6VIc" />
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="google-site-verification" content="true" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Spring Boot,Sentinel," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="ChihW's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="前言​    上篇中给大家介绍了如何在Spring Boot项目中使用Google Guava提供的RateLimiter类（令牌桶算法实现），并使用自定义注解的方式进行限流操作， 基本上可以满足一些简单的限流需求，但是也有局限性（如不适用分布式环境， 通用性不佳），所以本篇将介绍阿里中间件团队开源的限流框架（Sentinel），并将结合Spring Boot的项目，来看一下他们两者结合会产生什么">
+<meta property="og:type" content="article">
+<meta property="og:title" content="限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架">
+<meta property="og:url" content="https://blog.chihw.cn/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/index.html">
+<meta property="og:site_name" content="ChihW&#39;s Blog">
+<meta property="og:description" content="前言​    上篇中给大家介绍了如何在Spring Boot项目中使用Google Guava提供的RateLimiter类（令牌桶算法实现），并使用自定义注解的方式进行限流操作， 基本上可以满足一些简单的限流需求，但是也有局限性（如不适用分布式环境， 通用性不佳），所以本篇将介绍阿里中间件团队开源的限流框架（Sentinel），并将结合Spring Boot的项目，来看一下他们两者结合会产生什么">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/Pq9M5akCYOpQthr.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/QHvRKgBdyJYaTNV.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/f7Gadx4WrHg5ZuO.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/H7m5MIAoqTdUuVw.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/cTahe8QJZIvFtMA.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/2rU3vuhFtXyVQR8.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/YeVFyhkN5dqtCTl.png">
+<meta property="og:image" content="https://i.loli.net/2020/03/11/usq6L2W7kh9pDGN.png">
+<meta property="article:published_time" content="2020-03-11T01:14:15.853Z">
+<meta property="article:modified_time" content="2020-03-12T15:19:13.658Z">
+<meta property="article:author" content="ChihW">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="Sentinel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/03/11/Pq9M5akCYOpQthr.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://blog.chihw.cn/2020/03/11/限流那些事（三）----如何在Spring-Boot中是Sentinel框架/"/>
+
+
+
+
+
+  <title>限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架 | ChihW's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+<a href="https://your-url" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ChihW's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">专注前端30年</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.chihw.cn/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ChihW">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ChihW's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-11T09:14:15+08:00">
+                2020-03-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B/" itemprop="url" rel="index">
+                    <span itemprop="name">限流那些事</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2.5k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>​    上篇中给大家介绍了如何在Spring Boot项目中使用Google Guava提供的RateLimiter类（令牌桶算法实现），并使用自定义注解的方式进行限流操作， 基本上可以满足一些简单的限流需求，但是也有局限性（如不适用分布式环境， 通用性不佳），所以本篇将介绍阿里中间件团队开源的限流框架（<em>Sentinel</em>），并将结合Spring Boot的项目，来看一下他们两者结合会产生什么效果吧！</p>
+<hr>
+<a id="more"></a>
+
+<h3 id="Sentinel介绍"><a href="#Sentinel介绍" class="headerlink" title="Sentinel介绍"></a>Sentinel介绍</h3><p>​    首先简单介绍一下Sentinel（<em>分布式系统的流量防卫兵</em>）框架，它是阿里开源的一套流控框架（阿里，你懂得！<strong>阿里出品，必属精品~</strong>） ，Sentinel以流量为切入点，从流量控制、熔断降级、系统负载保护等多个维度来保护系统的稳定性。Sentinel框架跟Netflix Hystrix框架的作用类似， 只是Hystrix现在已经不维护了。</p>
+<blockquote>
+<p>主要特性</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/Pq9M5akCYOpQthr.png" alt="50505538-2c484880-0aaf-11e9-9ffc-cbaaef20be2b.png"></p>
+<p>​    Sentinel主要分为两部分：</p>
+<ul>
+<li><p>核心库，提供了流量控制、熔断降级、负载保护等很多功能。同时对Dubbo/Spring Cloud都有很好的支持。</p>
+</li>
+<li><p>控制台（Dashboard），基于Spring Boot开发，可以查看实时流控情况。</p>
+</li>
+</ul>
+<blockquote>
+<p>对比Hystrix</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">对比内容</th>
+<th align="center">Sentinel</th>
+<th align="center">Hystrix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">隔离策略</td>
+<td align="center">基于并发数</td>
+<td align="center">线程池隔离/信号量隔离</td>
+</tr>
+<tr>
+<td align="center">熔断降级策略</td>
+<td align="center">基于响应时间或失败比率</td>
+<td align="center">基于失败比率</td>
+</tr>
+<tr>
+<td align="center">实时指标实现</td>
+<td align="center">滑动窗口</td>
+<td align="center">滑动窗口（基于 RxJava）</td>
+</tr>
+<tr>
+<td align="center">规则配置</td>
+<td align="center">支持多种数据源</td>
+<td align="center">支持多种数据源</td>
+</tr>
+<tr>
+<td align="center">扩展性</td>
+<td align="center">多个扩展点</td>
+<td align="center">插件的形式</td>
+</tr>
+<tr>
+<td align="center">基于注解的支持</td>
+<td align="center">即将发布</td>
+<td align="center">支持</td>
+</tr>
+<tr>
+<td align="center">调用链路信息</td>
+<td align="center">支持同步调用</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">限流</td>
+<td align="center">基于 QPS / 并发数，支持基于调用关系的限流</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">流量整形</td>
+<td align="center">支持慢启动、匀速器模式</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">系统负载保护</td>
+<td align="center">支持</td>
+<td align="center">不支持</td>
+</tr>
+<tr>
+<td align="center">实时监控 API</td>
+<td align="center">各式各样</td>
+<td align="center">较为简单</td>
+</tr>
+<tr>
+<td align="center">控制台</td>
+<td align="center">开箱即用，可配置规则、查看秒级监控、机器发现等</td>
+<td align="center">不完善</td>
+</tr>
+<tr>
+<td align="center">常见框架的适配</td>
+<td align="center">Servlet、Spring Cloud、Dubbo、gRPC 等</td>
+<td align="center">Servlet、Spring Cloud Netflix</td>
+</tr>
+</tbody></table>
+<p>​    从对比的表格可以看出， Sentinel比Hystrix在功能上还是要强一些， 而且Sentinel也成为了Spring Cloud官方的主流推荐之一。</p>
+<h3 id="Sentinel实战"><a href="#Sentinel实战" class="headerlink" title="Sentinel实战"></a>Sentinel实战</h3><p>​    Sentinel可以通过控制台的方式来管理流控规则，也可以查看实时监控，机器列表等信息。</p>
+<h4 id="部署控制台"><a href="#部署控制台" class="headerlink" title="部署控制台"></a>部署控制台</h4><p>​    从<a href="https://github.com/alibaba/Sentinel/releases" target="_blank" rel="noopener">release页面</a>上获取最新版本的控制台Jar包（<em>1.7.1</em>），也可以下载源码进行构建。</p>
+<blockquote>
+<p>注意：JDK版本需1.8及以上</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -Dserver.port=<span class="number">8080</span> -Dcsp.sentinel.dashboard.server=localhost:<span class="number">8080</span> -Dproject.name=sentinel-dashboard -jar sentinel-dashboard<span class="number">.1</span><span class="number">.7</span><span class="number">.1</span>.jar</span><br></pre></td></tr></table></figure>
+
+<p>​    其中-Dserver.port=8080用于指定Sentinel控制台端口。</p>
+<blockquote>
+<p>启动成功</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/QHvRKgBdyJYaTNV.png" alt="微信截图_20200311210138.png"></p>
+<p>​    默认用户/密码： sentinel/sentinel。</p>
+<h4 id="接入控制台"><a href="#接入控制台" class="headerlink" title="接入控制台"></a>接入控制台</h4><ul>
+<li><pre><code class="yaml"><span class="string">compile("com.alibaba.cloud:spring-cloud-starter-alibaba-sentinel:1.5.0.RELEASE")</span></code></pre>
+<p>项目使用的是gradle构建， maven项目加入<dependency>。</p>
+</li>
+</ul>
+<blockquote>
+<p>注意事项：sentinel版本需要根据Spring Boot 的版本来， 项目使用的是Spring Boot 1.0, 所以Sentinel也引入1.0的版本。如使用Spring Boot 2.0，那相应的Sentinel也需要使用2.0</p>
+</blockquote>
+<h4 id="配置参数"><a href="#配置参数" class="headerlink" title="配置参数"></a>配置参数</h4><p>​    启动时加入JVM参数 <code>-Dcsp.sentinel.dashboard.server=consoleIp:port</code> 指定控制台地址和端口，Spring Boot项目可以直接在application.yml中配置</p>
+<blockquote>
+<p>接入配置</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">minions</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">sentinel:</span></span><br><span class="line">      <span class="attr">transport:</span></span><br><span class="line">        <span class="attr">dashboard:</span> <span class="string">localhost:8089</span></span><br><span class="line">        <span class="attr">port:</span> <span class="number">8719</span></span><br><span class="line">      <span class="attr">eager:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>​    application.name指定接入客户端的名字（建议填写），sentinel.transport.port指定本地启动的服务对应的端口号， 默认是8719，可以不指定， Sentinel会自动查找。sentinel.transport.dashboard指定客户端地址。根据前面启动的控制台来配置就行了。sentinel.eager关闭懒加载（<em>由于Sentinel采用的是懒加载模式，即客户端需要发起一次请求， Sentinel才会记录下来， 如果想要启动的时候就让Sentinel服务进行请求的拦截， 将eager设置为true即可</em>）。</p>
+<blockquote>
+<p>接口</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.shcepp.miniapp.business.controller;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.business.service.IPreClassifyService;</span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.sys.util.ApiResult;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.PathVariable;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"Test"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> IPreClassifyService preClassifyService;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 没有注解通过自适应的限流（资源名使用的是URL)</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limit"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, <span class="string">"OK"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 通过注解方式指定限流资源名（Sentinel官方推荐放到Service层）</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> name</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limitWithAnno/&#123;name&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimitWithAnno</span><span class="params">(@PathVariable String name)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 资源名是sayHello</span></span><br><span class="line">        String result = preClassifyService.sayHello(name);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    新建一个普通的RestController即可。</p>
+<h4 id="查看接入情况"><a href="#查看接入情况" class="headerlink" title="查看接入情况"></a>查看接入情况</h4><blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/f7Gadx4WrHg5ZuO.png" alt="微信截图_20200311211805.png"></p>
+<p>​    登录Sentinel，如果控制台出现配置的application.name, 说明接入成功， 如果没有接入成功， 可以进入${user.home}/logs/csp/sentinel-record.log.xxx日志来排查原因。</p>
+<blockquote>
+<p>Tips：圆圈中的数字表示目前客户端的健康状况， 接入的客户端会定时向客户端发送心跳包， 如果客户端断开， 那么圆圈里面的数量会小于后面的数字。</p>
+</blockquote>
+<h4 id="流控规则"><a href="#流控规则" class="headerlink" title="流控规则"></a>流控规则</h4><p>​    成功接入Sentinel控制台之后， 就可以在控制台中设置流控规则了。</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/H7m5MIAoqTdUuVw.png" alt="微信截图_20200311212415.png"></p>
+<p>​    查看簇点链路， 查看所有被Sentinel服务记录的资源。在接口的后面可以进行规则设置。</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/cTahe8QJZIvFtMA.png" alt="微信截图_20200311212935.png"></p>
+<p>​    下面我们将对流控规则做一个详细的了解， 以便更好的进行限流的操作。</p>
+<ul>
+<li><p>资源名</p>
+<p>配置规则的资源名， 只要接入到控制台的资源， Sentinel都会自动记录， 不可更改。一般使用编程的时候会用来设置。</p>
+</li>
+<li><p>针对来源</p>
+<p>三种情况可选</p>
+<blockquote>
+<p>default</p>
+</blockquote>
+<p>表示不区分调用者，来自任何调用者的请求都将进行限流统计。</p>
+<blockquote>
+<p>{origin_name}</p>
+</blockquote>
+<p>表示特定的调用者，只有来自这个调用者的请求才会进行流量控制</p>
+<blockquote>
+<p>other</p>
+</blockquote>
+<p>表示除{oragin_name}以外的其余调用方的请求进行流量控制。</p>
+</li>
+<li><p>阈值类型</p>
+<p>可以针对QPS或者线程数。</p>
+</li>
+<li><p>单机阈值</p>
+<p>单机模式下针对阈值类型设置的值。如果集群模式可以设置整体阈值</p>
+</li>
+<li><p>是否集群</p>
+<p>Sentinel部署了多台机器， 可以开启集群模式。</p>
+</li>
+<li><p>流控模式</p>
+<p>三种情况可选</p>
+<blockquote>
+<p>直接</p>
+</blockquote>
+<p>根据调用方进行限流， 跟前面的来源结合可以在不同的场景中进行流量控制。</p>
+<blockquote>
+<p>关联</p>
+</blockquote>
+<p>当两个资源之间具有争抢或者依赖关系是，那么这两个资源便具有关联，可以使用关联限流来避免出现过度的争抢。</p>
+<p>举例说明：比如对同一个东西read和write的两个资源进行关联限流， 当write操作过于频繁时，读的请求会被限流， 反之亦然。</p>
+<blockquote>
+<p>链路</p>
+</blockquote>
+<p>根据调用链路入口限流。</p>
+<p>举例说明：来自两个入口Entrance1和Entrance2的请求都调用了同一个资源， Sentinel可以根据某个入口的统计信息来对资源进行限流，比如说针对Entrance1的请求限流， Entrance2的请求可以放行。</p>
+</li>
+<li><p>流控效果</p>
+<p>三种策略可选</p>
+<blockquote>
+<p>快速失败</p>
+</blockquote>
+<p>当QPS或者线程数超过规则的阈值后， 新的请求就会被立即拒绝， 拒绝方式为抛出FlowException。</p>
+<p>这种方式适用于对系统处理能力已知的情况。</p>
+<blockquote>
+<p>Warm Up</p>
+</blockquote>
+<p>慢启动又称为“匀速器模式”，这种方式严格控制了请求通过的间隔时间，也就是让请求以均匀的速度通过， 对应的是漏桶算法。主要用于处理间隔性突发的流量，如一段时间内流量特别大， 但是接下来的时间内， 系统有比较空闲的情况。</p>
+<blockquote>
+<p>排队等待</p>
+</blockquote>
+<p>排队等待又称为“冷启动”。主要用于当系统长期处于低水位的情况下，流量突然增加时， 直接把系统升到高水位可能瞬间把系统压垮，通过冷启动，可以让流量缓慢增加，在一定时间内逐渐增加到阈值上限，给冷系统一个预热的时间。</p>
+</li>
+</ul>
+<h4 id="流控验证"><a href="#流控验证" class="headerlink" title="流控验证"></a>流控验证</h4><blockquote>
+<p>正常访问</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/2rU3vuhFtXyVQR8.png" alt="微信截图_20200311213155.png"></p>
+<blockquote>
+<p>被拦截访问</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/YeVFyhkN5dqtCTl.png" alt="微信截图_20200311213333.png"></p>
+<p>​    可以看到刚才的流控规则生效了。</p>
+<h4 id="规则持久化"><a href="#规则持久化" class="headerlink" title="规则持久化"></a>规则持久化</h4><p>​    服务重启后，规则怎么不见了， 什么鬼（<strong>黑人问号？？？？</strong>）。不要奇怪，因为Sentinel默认情况下规则是保存在内存中的， 重启后当然会不见了。这时候大家就会有疑问，那如果想要在线上环境使用Sentinel怎么办呢？有二种选择</p>
+<ul>
+<li>用阿里云上的付费版本（土豪的选择）</li>
+<li>实现规则的持久化</li>
+</ul>
+<p>像我们这种穷人，花钱是不可能， 一分钱都不可能花的。那么就来自己实现规则的持久化吧！    </p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/11/usq6L2W7kh9pDGN.png" alt="5417792-0669ef18170d1989.png"></p>
+<p>​    如上图所示， 当Sentinel的客户端挂掉之后， 保存在各个RuleManager中的规则都会灰飞烟灭。</p>
+<p>​    其实我们要做的很简单， 就是将原本保存在RuleManager内存中的规则， 持久化一份副本出去，这样客户端重启之后， 可以直接将持久化的副本在load到内存中。</p>
+<p>​    目前Sentinel实现了5中规则持久化的方式。</p>
+<ul>
+<li>file<ul>
+<li><a href="https://www.imooc.com/article/289402" target="_blank" rel="noopener">传送门</a></li>
+</ul>
+</li>
+<li>redis<ul>
+<li><a href="https://blog.csdn.net/qq_42714869/article/details/94553378" target="_blank" rel="noopener">传送门</a></li>
+</ul>
+</li>
+<li>nacos<ul>
+<li><a href="https://blog.csdn.net/lilizhou2008/article/details/97075236" target="_blank" rel="noopener">传送门</a></li>
+</ul>
+</li>
+<li>zk<ul>
+<li><a href="https://blog.csdn.net/rodbate/article/details/89763669" target="_blank" rel="noopener">传送门</a></li>
+</ul>
+</li>
+<li>apollo<ul>
+<li><a href="https://www.cnblogs.com/kiwifly/p/11569190.html" target="_blank" rel="noopener">传送门</a></li>
+</ul>
+</li>
+</ul>
+<p>具体的实现就不介绍了， 收集了一些大神写的教程， 大伙儿按需来吧！</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>​    本章主要给大家简单介绍如何在Spring Boot项目中使用Sentinel来进行流控， 我们看到Sentinel确实是一个很优秀的流控框架，不仅可以进行限流配置， 还可以配置降级， 热点参数等很多功能。基本上可以用来代替原来的Hystrix框架了， 而且还提供了Dashboard， 让配置规则更加简单， 但是比较坑的是， 规则无法持久化， 需要自己实现。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+	
+	<div>
+	  
+		<div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+	  
+	</div>
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring-Boot/" rel="tag"><i class="fa fa-tag"></i> Spring Boot</a>
+          
+            <a href="/tags/Sentinel/" rel="tag"><i class="fa fa-tag"></i> Sentinel</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/10/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%BA%8C%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8spring-boot%E9%A1%B9%E7%9B%AE%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%99%90%E6%B5%81/" rel="next" title="限流那些事（二） -- 如何在Spring Boot项目中使用限流">
+                <i class="fa fa-chevron-left"></i> 限流那些事（二） -- 如何在Spring Boot项目中使用限流
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="ChihW" />
+            
+              <p class="site-author-name" itemprop="name">ChihW</p>
+              <p class="site-description motion-element" itemprop="description">螺丝钉也有梦想</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Sentinel介绍"><span class="nav-number">1.1.</span> <span class="nav-text">Sentinel介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sentinel实战"><span class="nav-number">1.2.</span> <span class="nav-text">Sentinel实战</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#部署控制台"><span class="nav-number">1.2.1.</span> <span class="nav-text">部署控制台</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#接入控制台"><span class="nav-number">1.2.2.</span> <span class="nav-text">接入控制台</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置参数"><span class="nav-number">1.2.3.</span> <span class="nav-text">配置参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看接入情况"><span class="nav-number">1.2.4.</span> <span class="nav-text">查看接入情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流控规则"><span class="nav-number">1.2.5.</span> <span class="nav-text">流控规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流控验证"><span class="nav-number">1.2.6.</span> <span class="nav-text">流控验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#规则持久化"><span class="nav-number">1.2.7.</span> <span class="nav-text">规则持久化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ChihW</span>
+
+  
+</div>
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'Eqq9W4X4I8q22fT09QAC4Kjk-gzGzoHsz',
+        appKey: 'UMaAJ1tdcbk7NOLDmbF06XHq',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
