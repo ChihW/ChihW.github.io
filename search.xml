@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架</title>
+    <title>限流那些事（三） -- 如何在Spring Boot中使用Sentinel框架（上）</title>
     <url>/2020/03/11/%E9%99%90%E6%B5%81%E9%82%A3%E4%BA%9B%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89----%E5%A6%82%E4%BD%95%E5%9C%A8Spring-Boot%E4%B8%AD%E6%98%AFSentinel%E6%A1%86%E6%9E%B6/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>​    上篇中给大家介绍了如何在Spring Boot项目中使用Google Guava提供的RateLimiter类（令牌桶算法实现），并使用自定义注解的方式进行限流操作， 基本上可以满足一些简单的限流需求，但是也有局限性（如不适用分布式环境， 通用性不佳），所以本篇将介绍阿里中间件团队开源的限流框架（<em>Sentinel</em>），并将结合Spring Boot的项目，来看一下他们两者结合会产生什么效果吧！</p>
 <hr>
@@ -128,7 +128,7 @@
 <blockquote>
 <p>接口</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.shcepp.miniapp.business.controller;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.business.service.IPreClassifyService;</span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.sys.util.ApiResult;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.PathVariable;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"Test"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> IPreClassifyService preClassifyService;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 没有注解通过自适应的限流（资源名使用的是URL)</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limit"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, <span class="string">"OK"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 通过注解方式指定限流资源名（Sentinel官方推荐放到Service层）</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> name</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limitWithAnno/&#123;name&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimitWithAnno</span><span class="params">(@PathVariable String name)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 资源名是sayHello</span></span><br><span class="line">        String result = preClassifyService.sayHello(name);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.shcepp.miniapp.business.controller;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.business.service.IPreClassifyService;</span><br><span class="line"><span class="keyword">import</span> com.shcepp.miniapp.sys.util.ApiResult;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.PathVariable;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"Test"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> IPreClassifyService preClassifyService;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 没有注解通过自适应的限流（资源名使用的是URL)，并且会返回Blocked by Sentinel(flow limiting)</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limit"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, <span class="string">"OK"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 通过注解方式指定限流资源名（Sentinel官方推荐放到Service层）,抛出</span></span><br><span class="line"><span class="comment">     * UndeclaredThrowableException异常</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> name</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/limitWithAnno/&#123;name&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testLimitWithAnno</span><span class="params">(@PathVariable String name)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 资源名是sayHello</span></span><br><span class="line">        String result = preClassifyService.sayHello(name);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>​    新建一个普通的RestController即可。</p>
 <h4 id="查看接入情况"><a href="#查看接入情况" class="headerlink" title="查看接入情况"></a>查看接入情况</h4><blockquote>
@@ -168,6 +168,7 @@
 <p>other</p>
 </blockquote>
 <p>表示除{oragin_name}以外的其余调用方的请求进行流量控制。</p>
+<p>同一资源名可以配置多条规则，优先顺序为{origin_name} &gt; other &gt; default</p>
 </li>
 <li><p>阈值类型</p>
 <p>可以针对QPS或者线程数。</p>
@@ -221,6 +222,154 @@
 </blockquote>
 <p><img src="https://i.loli.net/2020/03/11/YeVFyhkN5dqtCTl.png" alt="微信截图_20200311213333.png"></p>
 <p>​    可以看到刚才的流控规则生效了。</p>
+<h4 id="降级规则"><a href="#降级规则" class="headerlink" title="降级规则"></a>降级规则</h4><p>​    当资源处于不稳定的情况下，那在接下来的时间窗口内，对该资源的调用都会自动熔断（默认抛出DegradeException)。</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/lLxhYzqTwH15IXj.png" alt="微信截图_20200315155423.png"></p>
+<p>​    首先还是定义资源，Sentinel提供了三种降级策略：</p>
+<ul>
+<li><p>RT</p>
+<blockquote>
+<p>平均响应时间（DEGRADE_DRADE_RT）：当资源的平均响应时间超过阈值（单位ms），就会进入降级状态， 接下来的如果持续进入5个请求，它们的RT都是超过阈值，那在接下里的时间窗口内（单位s），对这个资源的调用都会进行熔断。</p>
+<p>注意：<strong>Sentinel默认统计的RT上限是4900ms，超过此阈值都会算作4900ms，若需要变更上限可以通过启动配置项-Dcsp.sentinel.statistic.max.rt=xxx来配置</strong></p>
+</blockquote>
+</li>
+<li><p>异常比例</p>
+<blockquote>
+<p>异常比例（DEGRADE_GRADE_EXCEPTION_RATIO）：当资源的每秒异常数占通过量的比值超过阈值，资源进入降级状态，那在接下来的时间窗口（单位s），对这个资源的调用都会进行熔断，异常比例的阈值范围【0.0 - 0.1】，代表0% - 100%。</p>
+</blockquote>
+</li>
+<li><p>异常数</p>
+<blockquote>
+<p>异常数（DEGRADE_GRADE_EXCEPTION_COUNT)：当资源近1分钟的异常数超过阈值会进行熔断。</p>
+<p>注意：<strong>由于统计的窗口时间是分钟级别，若时间窗口小于1分钟，则结束熔断状态后仍可能再进入熔断状态。</strong></p>
+</blockquote>
+</li>
+</ul>
+<h4 id="系统规则"><a href="#系统规则" class="headerlink" title="系统规则"></a>系统规则</h4><p>​    与其他规则不太一样，它是针对应用的。</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/IMWdQZJ85RKPEHS.png" alt="微信截图_20200315161903.png"></p>
+<p>​    有五种阈值类型</p>
+<ul>
+<li><p>LOAD</p>
+<blockquote>
+<p>负载：根据当前系统的负载来决定是否触发保护。</p>
+<p>注意：只在Linux机器上生效</p>
+</blockquote>
+</li>
+<li><p>RT</p>
+<blockquote>
+<p>所有流量的平均响应时间</p>
+</blockquote>
+</li>
+<li><p>线程数</p>
+<blockquote>
+<p>所有服务访问的线程总数</p>
+</blockquote>
+</li>
+<li><p>入库QPS</p>
+<blockquote>
+<p>QPS总数</p>
+</blockquote>
+</li>
+<li><p>CPU使用率</p>
+<blockquote>
+<p>系统CPU使用率</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="热点规则"><a href="#热点规则" class="headerlink" title="热点规则"></a>热点规则</h4><p>​    热点是啥？？？热点其实就是访问非常频繁的参数</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/vn19chJ7rYHXf26.jpg" alt="param_flow.jpg"></p>
+<p>什么可以作为热点呢？ 比如我们大家都知道的爬虫，一般来说防爬虫常用的方法之一就是限制IP， 那对应的IP就可以作为热点的参数。</p>
+<p>​    Sentinel利用LRU策略统计最近最常访问的热点参数，结合令牌桶算法来进行流控。</p>
+<blockquote>
+<p>如图所示</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/3QTqhwPA8gt5FcD.png" alt="微信截图_20200315213054.png"></p>
+<ul>
+<li><p>资源名</p>
+<blockquote>
+<p>定义需要限流的资源</p>
+</blockquote>
+</li>
+<li><p>限流模式</p>
+<blockquote>
+<p>目前只支持QPS模式</p>
+</blockquote>
+</li>
+<li><p>参数索引</p>
+<blockquote>
+<p>指定热点参数的下标，从0开始，如果额外参数不匹配，则默认第一个参数。</p>
+</blockquote>
+</li>
+<li><p>单机阈值</p>
+<blockquote>
+<p>限流阈值</p>
+</blockquote>
+</li>
+<li><p>统计窗口时长</p>
+<blockquote>
+<p>窗口长度（不适合用于长时间的窗口）</p>
+</blockquote>
+</li>
+<li><p>参数类型（例外项）</p>
+<blockquote>
+<p>例外项，可以针对指定的参数值单独设置限流阈值，不受前面count阈值的限制</p>
+</blockquote>
+</li>
+<li><p>参数值（例外项）</p>
+<blockquote>
+<p>例外项的参数值</p>
+</blockquote>
+</li>
+<li><p>限流阈值（例外项）</p>
+<blockquote>
+<p>例外项单独设置的阈值，不受前面阈值的限制。</p>
+</blockquote>
+<blockquote>
+<p>示例</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 热点参数规则配置(传入IP作为热点参数）</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> ip</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="meta">@RequestMapping</span>(<span class="string">"/testHot"</span>)</span><br><span class="line">   <span class="function"><span class="keyword">public</span> ApiResult <span class="title">testHot</span><span class="params">(@RequestParam(value = <span class="string">"ip"</span>, required = <span class="keyword">false</span>)</span> String ip) </span>&#123;</span><br><span class="line">       String result = preClassifyService.sayHelloWithHot(ip);</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> ApiResult(<span class="string">"T"</span>, <span class="string">"200"</span>, <span class="string">"成功"</span>, result);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Service层方法</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@SentinelResource</span>(value = <span class="string">"sayHelloWithHot"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHelloWithHot</span><span class="params">(String ip)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Your IP is:"</span> + ip;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>控制台配置</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/t63PBqSLMypnmF4.png" alt="微信截图_20200315215817.png"></p>
+<p>单机阈值：1， 窗口时长1秒， 同时配置例外参数值：192.168.1.1， 限流阈值：3</p>
+<blockquote>
+<p>jmeter配置</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/BkRcCmKQGPhfTxv.png" alt="微信截图_20200315221259.png"></p>
+<p>配置IP参数为192.168.1.2。</p>
+<blockquote>
+<p>结果</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/VYNnSyszJopiMBZ.png" alt="微信截图_20200315221321.png"></p>
+<p>只有一条请求成功， 其他9条被限流</p>
+<blockquote>
+<p>jmeter配置</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/vMBqmIRDLnlHOVd.png" alt="微信截图_20200315221351.png"></p>
+<p>这次参数配置为例外的192.168.1.1，限流阈值为：3</p>
+<blockquote>
+<p>结果</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/03/15/vPVxztJMgTLC4is.png" alt="微信截图_20200315221402.png"></p>
+<p>这次有三个请求成功， 7个请求被限流， 说明配置的例外生效了。</p>
+<p>以上演示了简单的热点参数，当然如果不传入值的话， 那么该资源就不会被限流，所以热点规则其实是可以用于比较复杂的流控场景的，比如有些自定义的参数，也是可以用热点规则来进行限流的。</p>
+</li>
+</ul>
 <h4 id="规则持久化"><a href="#规则持久化" class="headerlink" title="规则持久化"></a>规则持久化</h4><p>​    服务重启后，规则怎么不见了， 什么鬼（<strong>黑人问号？？？？</strong>）。不要奇怪，因为Sentinel默认情况下规则是保存在内存中的， 重启后当然会不见了。这时候大家就会有疑问，那如果想要在线上环境使用Sentinel怎么办呢？有二种选择</p>
 <ul>
 <li>用阿里云上的付费版本（土豪的选择）</li>
@@ -235,29 +384,14 @@
 <p>​    其实我们要做的很简单， 就是将原本保存在RuleManager内存中的规则， 持久化一份副本出去，这样客户端重启之后， 可以直接将持久化的副本在load到内存中。</p>
 <p>​    目前Sentinel实现了5中规则持久化的方式。</p>
 <ul>
-<li>file<ul>
-<li><a href="https://www.imooc.com/article/289402" target="_blank" rel="noopener">传送门</a></li>
+<li>file</li>
+<li>redis</li>
+<li>nacos</li>
+<li>zk</li>
+<li>apollo</li>
 </ul>
-</li>
-<li>redis<ul>
-<li><a href="https://blog.csdn.net/qq_42714869/article/details/94553378" target="_blank" rel="noopener">传送门</a></li>
-</ul>
-</li>
-<li>nacos<ul>
-<li><a href="https://blog.csdn.net/lilizhou2008/article/details/97075236" target="_blank" rel="noopener">传送门</a></li>
-</ul>
-</li>
-<li>zk<ul>
-<li><a href="https://blog.csdn.net/rodbate/article/details/89763669" target="_blank" rel="noopener">传送门</a></li>
-</ul>
-</li>
-<li>apollo<ul>
-<li><a href="https://www.cnblogs.com/kiwifly/p/11569190.html" target="_blank" rel="noopener">传送门</a></li>
-</ul>
-</li>
-</ul>
-<p>具体的实现就不介绍了， 收集了一些大神写的教程， 大伙儿按需来吧！</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>​    本章主要给大家简单介绍如何在Spring Boot项目中使用Sentinel来进行流控， 我们看到Sentinel确实是一个很优秀的流控框架，不仅可以进行限流配置， 还可以配置降级， 热点参数等很多功能。基本上可以用来代替原来的Hystrix框架了， 而且还提供了Dashboard， 让配置规则更加简单， 但是比较坑的是， 规则无法持久化， 需要自己实现。</p>
+<p>​    具体的实现在本篇就暂时不介绍了， 之后会单独出一篇来介绍在Sentinel中如何来实现规则的持久化，而且是结合Apollo来实现的哦~~</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>​    本章主要给大家简单介绍如何在Spring Boot项目中使用Sentinel来进行流控， 我们看到Sentinel确实是一个很优秀的流控框架，不仅可以进行限流配置， 还可以配置降级， 热点参数等很多功能。基本上可以用来代替原来的Hystrix框架了， 而且还提供了Dashboard， 让配置规则更加简单， 但是比较坑的是， 规则无法持久化， 需要自己实现，后面我也会跟大家介绍如何来实现规则的持久化。</p>
 ]]></content>
       <categories>
         <category>限流那些事</category>
